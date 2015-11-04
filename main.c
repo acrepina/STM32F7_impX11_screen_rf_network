@@ -51,13 +51,13 @@
 
 
 /* Private macro */
-#define MESSAGE1   "          STM32F439X          "
-#define MESSAGE2   "      Device running on       "
-#define MESSAGE3   "      STM32F7-DISCOVERY				"
-#define MESSAGE4   "                              "
-#define MESSAGE5   "      program built with      "
-#define MESSAGE6   "   Open Source Technologies   "
-#define MESSAGE7   "  			 LEY CREPIN       	  "
+#define MESSAGE1   "              |               "
+#define MESSAGE2   "              |               "
+#define MESSAGE3   "              |               "
+#define MESSAGE4   "     ON       |      OFF      "
+#define MESSAGE5   "              |               "
+#define MESSAGE6   "              |               "
+#define MESSAGE7   "         LEY CREPIN           "
 
 
 #ifdef _RTE_
@@ -118,6 +118,16 @@ int m_nCurrentLine = 0;
 		
 	}
 	
+	void TS_IRQHandler(void)
+	{
+		TS_StateTypeDef * state;
+		
+		if(BSP_TS_ITGetStatus() != RESET)
+		{
+			BSP_TS_GetState(state);
+			BSP_TS_ITClear();
+		}
+	}
 	
 	
 	void initMessage(void)
@@ -197,28 +207,33 @@ int LCDinit(void) {
 	/* LCD Initialization */
 	BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
 	BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS+(BSP_LCD_GetXSize()*BSP_LCD_GetYSize()*4));
+	BSP_LCD_SetLayerVisible(1, DISABLE);
 
-	/* Enable the LCD */
-	BSP_LCD_DisplayOn();
+
 
 	/* Select the LCD Background Layer  */
 	BSP_LCD_SelectLayer(0);
+	
 
 	/* Clear the Background Layer */
-	BSP_LCD_Clear(LCD_COLOR_BLUE);
+	BSP_LCD_Clear(LCD_COLOR_ORANGE);
+	BSP_LCD_SetTransparency(0, 0);
+	//BSP_LCD_SetBackColor(LCD_COLOR_ORANGE);
+	BSP_LCD_SetLayerVisible(0, ENABLE);
+	
 
 	/* Select the LCD Foreground Layer  */
 	BSP_LCD_SelectLayer(1);
 
 	/* Clear the Foreground Layer */
-	BSP_LCD_Clear(LCD_COLOR_BLUE);
+	BSP_LCD_Clear(LCD_COLOR_ORANGE);
 
 	/* Configure the transparency for foreground and background : Increase the transparency */
-	BSP_LCD_SetTransparency(0, 0);
+	
 	BSP_LCD_SetTransparency(1, 100);
 
 	// Display a startup message
-	BSP_LCD_SetBackColor(LCD_COLOR_LIGHTGREEN);
+		BSP_LCD_SetBackColor(LCD_COLOR_LIGHTGREEN);
     BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
 
     BSP_LCD_DisplayStringAtLine(1, (uint8_t*)MESSAGE1);
@@ -227,9 +242,13 @@ int LCDinit(void) {
     BSP_LCD_DisplayStringAtLine(4, (uint8_t*)MESSAGE4);
     BSP_LCD_DisplayStringAtLine(5, (uint8_t*)MESSAGE5);
     BSP_LCD_DisplayStringAtLine(6, (uint8_t*)MESSAGE6);
-		BSP_LCD_DisplayStringAtLine(6, (uint8_t*)MESSAGE7);
+		BSP_LCD_DisplayStringAtLine(7, (uint8_t*)MESSAGE7);
+		BSP_LCD_SetLayerVisible(1, ENABLE);
 
 	m_nCurrentLine = 0;
+	
+		/* Enable the LCD */
+	BSP_LCD_DisplayOn();
 
 	return 1;
 }
@@ -363,8 +382,8 @@ int main(void)
 			}
 		}
  }
-	 
 	
+	 
 //  while (1)
 //  {
 //		do
