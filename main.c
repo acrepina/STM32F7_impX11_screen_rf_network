@@ -114,7 +114,7 @@ int m_nCurrentLine = 0;
 	void TouchScreenInit(void)
 	{
 		BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
-		BSP_TS_ITConfig();
+		//BSP_TS_ITConfig();
 		
 	}
 	
@@ -353,10 +353,12 @@ int main(void)
 		{
 			if(state->touchX[0] < ((uint16_t)0xf0))
 			{
+				BSP_TS_ResetTouchData(state);
 				send_Message_Bin(ADD,DATA_allume);
 			}
 			else
 			{
+				BSP_TS_ResetTouchData(state);
 				send_Message_Bin(ADD,DATA_eteindre);
 			}
 		}
