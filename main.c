@@ -41,23 +41,17 @@
  */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
-#include "stm32f7xx.h"                  // Device header
-#include "stm32746g_discovery.h"        // Keil.STM32F746G-Discovery::Board Support:Drivers:Basic I/O
-#include "Board_Buttons.h"              // ::Board Support:Buttons
-#include "stm32f7xx_hal.h"
-#include "stm32746g_discovery_lcd.h"
-#include "stm32746g_discovery_ts.h"		//Biblio touchscreen
+//#include "main.h"
+//#include "stm32f7xx.h"                  // Device header
+//#include "stm32746g_discovery.h"        // Keil.STM32F746G-Discovery::Board Support:Drivers:Basic I/O
+//#include "Board_Buttons.h"              // ::Board Support:Buttons
+//#include "stm32f7xx_hal.h"
+
+#include "lightControll.h"
+#include "screenControll.h"
 
 
-/* Private macro */
-#define MESSAGE1   "              |               "
-#define MESSAGE2   "              |               "
-#define MESSAGE3   "              |               "
-#define MESSAGE4   "     ON       |      OFF      "
-#define MESSAGE5   "              |               "
-#define MESSAGE6   "              |               "
-#define MESSAGE7   "         LEY CREPIN           "
+
 
 
 #ifdef _RTE_
@@ -83,25 +77,18 @@ uint32_t HAL_GetTick(void) {
   * @{
   */ 
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
+
 static void SystemClock_Config(void);
 static void Error_Handler(void);
 static void MPU_Config(void);
 static void CPU_CACHE_Enable(void);
-static void initMessage(void);
-static void sendZero(void);
-static void sendOne(void);
-static void send_Message_Bin(short add[8], short data[8]);
-int LCDinit(void);
-void TouchScreenInit(void);
 
 
 
-int m_nCurrentLine = 0;
+
+
+
+
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -111,148 +98,7 @@ int m_nCurrentLine = 0;
   * @retval None
   */
 	
-	void TouchScreenInit(void)
-	{
-		BSP_TS_Init(BSP_LCD_GetXSize(), BSP_LCD_GetYSize());
-		//BSP_TS_ITConfig();
-		
-	}
 	
-	void TS_IRQHandler(void)
-	{
-		TS_StateTypeDef * state;
-		
-		if(BSP_TS_ITGetStatus() != RESET)
-		{
-			BSP_TS_GetState(state);
-			BSP_TS_ITClear();
-		}
-	}
-	
-	
-	void initMessage(void)
-	{
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
-		HAL_Delay(360); //9 ms
-		
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
-		
-		HAL_Delay(180);//4.5ms zob
-	}	
-
- void sendZero(void)
- {
-	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
-	 HAL_Delay(22); //550us
-	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
-	 HAL_Delay(23);//575us
- }
- 
- void sendOne(void)
- {
-	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_SET);
-	 HAL_Delay(45); //9 ms
-	 HAL_GPIO_WritePin(GPIOB, GPIO_PIN_9, GPIO_PIN_RESET);
-	 HAL_Delay(45);//4.5ms zob
- }
-void send_Message_Bin(short add[8], short data[8]) {
-	short i;
-	short j;
-	
-	initMessage(); 
-	for(j=0;j<6;j++)
-	{
-		for(i=0; i<8; i++){
-			if(add[i]==1){
-				sendOne();
-			}else{
-				sendZero();
-			}
-		}
-			
-		for(i=0; i<8; i++){
-			if(add[i]==1){
-				sendZero();
-			}else{
-				sendOne();
-			}	
-		}
-		
-		for(i=0; i<8; i++){
-			if(data[i]==1){
-				sendOne();
-			}else{
-				sendZero();
-			}
-		}
-		
-			for(i=0; i<8; i++){
-			if(data[i]==1){
-				sendZero();
-			}else{
-				sendOne();
-			}	
-		}
-			sendOne();
-			HAL_Delay(220);
-	}
-	
-	
-}
-
-int LCDinit(void) {
-	/* Hardware initialization */
-	BSP_LCD_Init();
-
-	/* LCD Initialization */
-	BSP_LCD_LayerDefaultInit(0, LCD_FB_START_ADDRESS);
-	BSP_LCD_LayerDefaultInit(1, LCD_FB_START_ADDRESS+(BSP_LCD_GetXSize()*BSP_LCD_GetYSize()*4));
-	BSP_LCD_SetLayerVisible(1, DISABLE);
-
-
-
-	/* Select the LCD Background Layer  */
-	BSP_LCD_SelectLayer(0);
-	
-
-	/* Clear the Background Layer */
-	BSP_LCD_Clear(LCD_COLOR_ORANGE);
-	BSP_LCD_SetTransparency(0, 0);
-	//BSP_LCD_SetBackColor(LCD_COLOR_ORANGE);
-	BSP_LCD_SetLayerVisible(0, ENABLE);
-	
-
-	/* Select the LCD Foreground Layer  */
-	BSP_LCD_SelectLayer(1);
-
-	/* Clear the Foreground Layer */
-	BSP_LCD_Clear(LCD_COLOR_ORANGE);
-
-	/* Configure the transparency for foreground and background : Increase the transparency */
-	
-	BSP_LCD_SetTransparency(1, 100);
-
-	// Display a startup message
-		BSP_LCD_SetBackColor(LCD_COLOR_LIGHTGREEN);
-    BSP_LCD_SetTextColor(LCD_COLOR_BLACK);
-
-    BSP_LCD_DisplayStringAtLine(1, (uint8_t*)MESSAGE1);
-    BSP_LCD_DisplayStringAtLine(2, (uint8_t*)MESSAGE2);
-    BSP_LCD_DisplayStringAtLine(3, (uint8_t*)MESSAGE3);
-    BSP_LCD_DisplayStringAtLine(4, (uint8_t*)MESSAGE4);
-    BSP_LCD_DisplayStringAtLine(5, (uint8_t*)MESSAGE5);
-    BSP_LCD_DisplayStringAtLine(6, (uint8_t*)MESSAGE6);
-		BSP_LCD_DisplayStringAtLine(7, (uint8_t*)MESSAGE7);
-		BSP_LCD_SetLayerVisible(1, ENABLE);
-
-	m_nCurrentLine = 0;
-	
-		/* Enable the LCD */
-	BSP_LCD_DisplayOn();
-
-	return 1;
-}
-
 void	mPort_Initialize(void){
   GPIO_InitTypeDef GPIO_InitStruct;
 
@@ -267,39 +113,8 @@ void	mPort_Initialize(void){
   HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 	
 }
-//int8_t trad_x10ToBin(char* mess){//char[12] mess
-////	|    Byte 1     |    Byte 2     |
-////|X|X|X|X|0|X|0|0|X|X|X|X|X|0|0|0|
-////|1 2 3 4 5 6 7 8|1 2 3 4 5 6 7 8|
-
-////Byte 1
-////1: One for house codes E-L
-////2: One for house codes A-D & I-L
-////3: One for house codes A,B,G,H,I,J,O,P
-////4: One for house codes B,D,F,H,J,L,N,P
-////5: Always zero
-////6: One for units 9-16
-////7: Always zero
-////8: Always zero
-
-////Byte 2
-////1: One for BRIGHT or DIM
-////2: One for unit codes 5-8 & 13-16
-////3: One for OFF (Zero for ON or BRIGHT/DIM)
-////4: One for unit codes 2,4,6,8,10,12,14,16 & DIM command
-////5: One for unit codes 3,4,7,8,11,12,15,16 & BRIGHT & DIM commands
-////6: Always zero
-////7: Always zero
-////8: Always zero
 
 
-//	int8_t bintab=0;
-//	if{
-//			
-//	}
-//	
-//	return bintab;
-//}
 
 
 /**
@@ -423,6 +238,9 @@ int main(void)
   * @param  None
   * @retval None
   */
+	
+	
+	
 static void SystemClock_Config(void)
 {
   RCC_ClkInitTypeDef RCC_ClkInitStruct;
